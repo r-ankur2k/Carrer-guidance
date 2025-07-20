@@ -43,19 +43,21 @@
             font-weight: 700;
             margin-bottom: 20px;
         }
-        select {
+        select, button {
             width: 100%;
             max-width: 350px;
             padding: 12px;
-            margin: 15px 0;
+            margin: 10px 0;
             border: none;
             border-radius: 10px;
-            background: #f0f2f5;
             font-size: 16px;
             font-weight: 500;
-            color: #2a2a72;
             transition: all 0.3s ease;
             cursor: pointer;
+        }
+        select {
+            background: #f0f2f5;
+            color: #2a2a72;
         }
         select:focus {
             background: #e6e9ff;
@@ -65,17 +67,48 @@
         button {
             background: linear-gradient(90deg, #34c759, #21b8c7);
             color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(52, 199, 89, 0.4);
+        }
+        .quiz-container {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+            display: none;
+            animation: slideIn 0.4s ease;
+        }
+        .quiz-container.active {
+            display: block;
+        }
+        .quiz-question {
+            margin: 15px 0;
+            text-align: left;
+        }
+        .quiz-question p {
+            color: #2a2a72;
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .quiz-question label {
+            display: block;
+            margin: 8px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .quiz-result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e6e9ff;
+            border-radius: 10px;
+            text-align: left;
+            display: none;
+        }
+        .quiz-result.active {
+            display: block;
         }
         .roadmap {
             margin-top: 30px;
@@ -185,48 +218,84 @@
             <option value="12th">After 12th</option>
             <option value="graduation">After Graduation</option>
         </select>
-        <button id="exploreBtn">Explore Your Path</button>
+        <button id="exploreBtn" onclick="showRoadmap()">Explore Your Path</button>
+        <button id="quizBtn">Take Career Quiz</button>
+        <div id="quizContainer" class="quiz-container">
+            <h3>Career Path Quiz</h3>
+            <div id="quizQuestions"></div>
+            <button id="submitQuiz">Submit Answers</button>
+            <div id="quizResult" class="quiz-result"></div>
+        </div>
         <div id="roadmap" class="roadmap"></div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM fully loaded');
             const exploreBtn = document.getElementById('exploreBtn');
-            exploreBtn.addEventListener('click', () => {
-                console.log('Button clicked, triggering showRoadmap');
-                showRoadmap();
-            });
+            const quizBtn = document.getElementById('quizBtn');
+            if (exploreBtn) {
+                console.log('Explore button found');
+                exploreBtn.addEventListener('click', () => {
+                    console.log('Explore button clicked');
+                    showRoadmap();
+                });
+            } else {
+                console.error('Explore button not found');
+            }
+            if (quizBtn) {
+                console.log('Quiz button found');
+                quizBtn.addEventListener('click', () => {
+                    console.log('Quiz button clicked');
+                    showQuiz();
+                });
+            } else {
+                console.error('Quiz button not found');
+            }
         });
 
         function showRoadmap() {
             console.log('showRoadmap function called');
-            const educationLevel = document.getElementById('educationLevel').value;
+            const educationLevel = document.getElementById('educationLevel');
             const roadmap = document.getElementById('roadmap');
+            const quizContainer = document.getElementById('quizContainer');
+            if (!educationLevel || !roadmap) {
+                console.error('Education level or roadmap container not found');
+                alert('Error: Unable to load roadmap. Please refresh the page.');
+                return;
+            }
             roadmap.innerHTML = '';
+            quizContainer.classList.remove('active'); // Hide quiz when showing roadmap
+            const value = educationLevel.value;
 
-            if (!educationLevel) {
+            if (!value) {
                 roadmap.innerHTML = '<div class="node"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm0-10a2 2 0 100 4 2 2 0 000-4z"/></svg>Please select an education level</div>';
                 console.log('No education level selected');
+                alert('Please select an education level to explore your path.');
                 return;
             }
 
             let nodes = [];
 
-            if (educationLevel === '10th') {
+            if (value === '10th') {
                 nodes = [
                     {
                         title: 'Choose Academic Stream',
                         icon: '<svg viewBox="0 0 24 24"><path d="M4 4h16v2H4zm0 4h16v12H4zm2 2v8h12v-8zm4 2h4v4h-4z"/></svg>',
                         details: `
                             <h3>Choose Academic Stream (11th & 12th)</h3>
-                            <p>Select Science (PCM/PCB), Commerce, or Arts for further studies based on your interests.</p>
+                            <p>Select Science (PCM/PCB), Commerce, or Arts based on your interests and aptitude.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Analytical thinking, time management, exam preparation, subject-specific aptitude (e.g., Math for PCM, Biology for PCB).</li>
                                 <li><b>Advantages</b>: Opens diverse career paths (engineering, medicine, law); structured education; access to competitive exams (JEE, NEET, CLAT).</li>
                                 <li><b>Disadvantages</b>: 2 additional years of study; high exam pressure; delays immediate earning.</li>
                                 <li><b>Paths Blocked</b>: Direct job-oriented paths (ITI, short-term vocational courses).</li>
                                 <li><b>Paths Opened</b>: B.Tech, MBBS, B.Com, BA, CA, Law, NDA, SSC.</li>
+                                <li><b>Starting Salary</b>: Not applicable (leads to higher education).</li>
+                                <li><b>Top Institutes/Courses</b>: CBSE/ICSE schools, coaching institutes (Allen, Aakash for JEE/NEET).</li>
+                                <li><b>Job Roles</b>: Not immediate; prepares for professional degrees or exams.</li>
                             </ul>
-                            <p><b>Tip</b>: Take aptitude tests (e.g., CareerFitter) to identify strengths. Explore NTSE scholarships.</p>
+                            <p><b>Tip</b>: Take aptitude tests (e.g., CareerFitter, MyNextMove) to identify strengths. Explore NTSE scholarships for financial support.</p>
                         `
                     },
                     {
@@ -234,14 +303,18 @@
                         icon: '<svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>',
                         details: `
                             <h3>Diploma Courses</h3>
-                            <p>Enroll in 2-3 year diplomas (e.g., Mechanical, IT, Hotel Management) for practical skills.</p>
+                            <p>Enroll in 2-3 year diplomas (e.g., Mechanical, IT, Hotel Management) for practical, hands-on skills.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Technical skills (e.g., CAD for engineering, coding for IT), problem-solving, teamwork.</li>
                                 <li><b>Advantages</b>: Quick entry to technical jobs; hands-on training; lateral entry to B.Tech possible.</li>
-                                <li><b>Disadvantages</b>: Limited scope vs. degrees; lower initial pay; may need further studies.</li>
+                                <li><b>Disadvantages</b>: Limited scope vs. degrees; lower initial pay; may need further studies for growth.</li>
                                 <li><b>Paths Blocked</b>: Professional degrees (MBBS, B.Arch); exams requiring 12th (JEE, NEET).</li>
                                 <li><b>Paths Opened</b>: Technician roles, junior engineer, B.Tech (lateral), vocational certifications.</li>
+                                <li><b>Starting Salary</b>: ₹1.8-3.6 LPA (India); $30,000-$50,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: Government polytechnics, NIIT (IT diplomas), IHM (hospitality).</li>
+                                <li><b>Job Roles</b>: Junior Engineer, IT Support Technician, Hotel Operations Manager.</li>
                             </ul>
-                            <p><b>Tip</b>: Choose accredited polytechnics. Network with industry professionals.</p>
+                            <p><b>Tip</b>: Choose accredited polytechnics (e.g., Government Polytechnic Mumbai). Network with industry professionals via LinkedIn.</p>
                         `
                     },
                     {
@@ -249,14 +322,18 @@
                         icon: '<svg viewBox="0 0 24 24"><path d="M11 2v4h2V4h4v4h2V4c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-8h-2v6H7v-12h4z"/></svg>',
                         details: `
                             <h3>ITI (Industrial Training Institute)</h3>
-                            <p>1-2 year courses in trades like Electrician, Welder, or Computer Operator.</p>
+                            <p>1-2 year courses in trades like Electrician, Welder, or Computer Operator for immediate job readiness.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Practical skills (e.g., wiring, welding), attention to detail, safety awareness.</li>
                                 <li><b>Advantages</b>: Fast job entry; high demand for skilled trades; affordable training.</li>
                                 <li><b>Disadvantages</b>: Limited career growth without upskilling; physically demanding roles.</li>
                                 <li><b>Paths Blocked</b>: Academic degrees (B.Tech, MBBS); exams requiring 12th.</li>
                                 <li><b>Paths Opened</b>: Skilled trades, technical entrepreneurship, further certifications.</li>
+                                <li><b>Starting Salary</b>: ₹1.5-3 LPA (India); $25,000-$40,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: Government ITIs, NCVT-certified courses, ITI Delhi.</li>
+                                <li><b>Job Roles</b>: Electrician, Welder, Machine Operator, Technical Assistant.</li>
                             </ul>
-                            <p><b>Tip</b>: Opt for government ITIs. Learn digital tools for better job prospects.</p>
+                            <p><b>Tip</b>: Opt for government ITIs for credibility. Learn digital tools (e.g., AutoCAD) for better prospects.</p>
                         `
                     },
                     {
@@ -264,14 +341,18 @@
                         icon: '<svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zm2 2v14h14V5zm3 4h8v2H8zm0 4h8v2H8z"/></svg>',
                         details: `
                             <h3>Vocational Skills</h3>
-                            <p>Short-term courses in Graphic Design, Coding, or Digital Marketing.</p>
+                            <p>Short-term courses (3-12 months) in Graphic Design, Coding, or Digital Marketing for digital economy roles.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Creativity (design), logic (coding), marketing analytics, self-learning.</li>
                                 <li><b>Advantages</b>: Quick to learn; freelancing opportunities; aligns with digital economy.</li>
                                 <li><b>Disadvantages</b>: Less formal recognition; requires strong portfolio to compete.</li>
                                 <li><b>Paths Blocked</b>: Traditional degrees (B.Sc, B.Com); professional courses needing 12th.</li>
                                 <li><b>Paths Opened</b>: Freelancing, startup roles, advanced tech/design certifications.</li>
+                                <li><b>Starting Salary</b>: ₹2-5 LPA (India, freelancing); $40,000-$60,000/year (global, remote).</li>
+                                <li><b>Top Institutes/Courses</b>: Coursera (Google Digital Marketing), Udemy (Web Development), Arena Animation.</li>
+                                <li><b>Job Roles</b>: Graphic Designer, Web Developer, Digital Marketer, Content Creator.</li>
                             </ul>
-                            <p><b>Tip</b>: Build a portfolio on GitHub or Behance. Use Coursera for certifications.</p>
+                            <p><b>Tip</b>: Build a portfolio on GitHub or Behance. Earn certifications from Coursera or Udemy.</p>
                         `
                     },
                     {
@@ -279,32 +360,40 @@
                         icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14h-2v6H6v2h6v6h2v-6h6v-2h-6V6z"/></svg>',
                         details: `
                             <h3>Entrepreneurship</h3>
-                            <p>Start a small business or freelance (e.g., photography, tutoring).</p>
+                            <p>Start a small business or freelance (e.g., photography, tutoring, e-commerce).</p>
                             <ul>
-                                <li><b>Advantages</b>: Creative control; high earning potential; builds leadership.</li>
+                                <li><b>Skills Required</b>: Leadership, financial literacy, marketing, risk-taking, networking.</li>
+                                <li><b>Advantages</b>: Creative control; high earning potential; builds leadership and resilience.</li>
                                 <li><b>Disadvantages</b>: Financial risk; requires initial capital; no guaranteed income.</li>
                                 <li><b>Paths Blocked</b>: Formal degrees, structured jobs without later studies.</li>
-                                <li><b>Paths Opened</b>: Business ownership, e-commerce, startup scaling.</li>
+                                <li><b>Paths Opened</b>: Business ownership, e-commerce, startup scaling, consulting.</li>
+                                <li><b>Starting Salary</b>: Variable (₹0-10 LPA in India; $0-$100,000/year globally, based on success).</li>
+                                <li><b>Top Institutes/Courses</b>: Online platforms (YouTube, Coursera for business basics), Startup India courses.</li>
+                                <li><b>Job Roles</b>: Business Owner, Freelancer, Consultant, Startup Founder.</li>
                             </ul>
-                            <p><b>Tip</b>: Learn business basics via YouTube. Join local startup communities.</p>
+                            <p><b>Tip</b>: Learn business basics via YouTube or Startup India. Join local startup communities or incubators.</p>
                         `
                     }
                 ];
-            } else if (educationLevel === '12th') {
+            } else if (value === '12th') {
                 nodes = [
                     {
                         title: 'Science (PCM)',
                         icon: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-10 10 10 10 0 0010 10 10 10 0 0010-10A10 10 0 0012 2zm0 18a8 8 0 01-8-8 8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8zm-1-13h2v6h6v2h-8V7z"/></svg>',
                         details: `
                             <h3>Science (PCM)</h3>
-                            <p>Pursue B.Tech (JEE), B.Arch (NATA), or B.Sc (Physics, Math).</p>
+                            <p>Pursue B.Tech (JEE), B.Arch (NATA), or B.Sc (Physics, Math) for technical careers.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Math (calculus, algebra), physics, problem-solving, coding (Python, C++).</li>
                                 <li><b>Advantages</b>: High-demand tech/engineering jobs; global opportunities; strong salaries.</li>
                                 <li><b>Disadvantages</b>: Competitive exams (JEE, BITSAT); 4-5 years of study; high pressure.</li>
                                 <li><b>Paths Blocked</b>: Medical fields (MBBS); some commerce/arts degrees.</li>
                                 <li><b>Paths Opened</b>: Software Engineering, Architecture, Data Science, M.Tech, MBA.</li>
+                                <li><b>Starting Salary</b>: ₹4-12 LPA (India); $60,000-$100,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: IITs (JEE), NITs, BITS Pilani, B.Arch (SPA Delhi).</li>
+                                <li><b>Job Roles</b>: Software Engineer, Data Analyst, Architect, Civil Engineer.</li>
                             </ul>
-                            <p><b>Tip</b>: Prepare for JEE early. Explore tech internships for experience.</p>
+                            <p><b>Tip</b>: Start JEE prep early (Aakash, FIITJEE). Explore internships via Internshala.</p>
                         `
                     },
                     {
@@ -312,14 +401,18 @@
                         icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-6h4v4h-4z"/></svg>',
                         details: `
                             <h3>Science (PCB)</h3>
-                            <p>Go for MBBS/BDS (NEET), B.Sc Nursing, or Biotechnology.</p>
+                            <p>Go for MBBS/BDS (NEET), B.Sc Nursing, or Biotechnology for medical careers.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Biology, chemistry, memorization, patient care, research skills.</li>
                                 <li><b>Advantages</b>: Stable medical careers; high societal impact; global demand.</li>
                                 <li><b>Disadvantages</b>: Intense NEET competition; long study duration (5+ years); high stress.</li>
                                 <li><b>Paths Blocked</b>: Engineering (without PCM); some commerce/arts fields.</li>
                                 <li><b>Paths Opened</b>: Doctor, Researcher, MD/MS, Healthcare Management.</li>
+                                <li><b>Starting Salary</b>: ₹6-15 LPA (India); $80,000-$150,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: AIIMS, CMC Vellore, JIPMER, B.Sc Biotech (Amity).</li>
+                                <li><b>Job Roles</b>: Doctor, Nurse, Biotechnologist, Medical Researcher.</li>
                             </ul>
-                            <p><b>Tip</b>: Join NEET coaching. Volunteer in hospitals for exposure.</p>
+                            <p><b>Tip</b>: Join NEET coaching (Allen, Aakash). Volunteer in hospitals for exposure.</p>
                         `
                     },
                     {
@@ -329,705 +422,16 @@
                             <h3>Commerce</h3>
                             <p>Opt for CA, CS, B.Com, or BBA for finance/business careers.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Accounting, financial analysis, business communication, Excel.</li>
                                 <li><b>Advantages</b>: Diverse roles (accounting, marketing); shorter professional courses; entrepreneurial scope.</li>
                                 <li><b>Disadvantages</b>: Tough CA/CS exams; lower initial pay in some roles.</li>
                                 <li><b>Paths Blocked</b>: Science careers (engineering, medicine); some arts fields.</li>
                                 <li><b>Paths Opened</b>: Finance (CA, CFA), Management (MBA), Banking, Economics.</li>
+                                <li><b>Starting Salary</b>: ₹3-8 LPA (India); $50,000-$80,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: ICAI (CA), ICSI (CS), SRCC (B.Com), IIMs (BBA).</li>
+                                <li><b>Job Roles</b>: Chartered Accountant, Financial Analyst, Marketing Executive.</li>
                             </ul>
-                            <p><b>Tip</b>: Start CA foundation prep. Learn Tally or financial modeling.</p>
-                        `
-                    },
-                    {
-                        title: 'Arts/Humanities',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zm2 2v14 ДТП
-
-System: It looks like the code was cut off in the previous response. Below, I’ll provide the complete, corrected HTML code for the **Aesthetic Career Guidance Roadmap Bot** with a fully functional "Explore Your Path" button, ensuring the issue is resolved. The UI remains engaging and modern, inspired by roadmap.sh, with a soft color palette, smooth animations, SVG icons, and detailed career path explanations (including advantages, disadvantages, paths blocked, and paths opened) for education levels (after 10th, 12th, or Graduation). I’ve also added safeguards to prevent button issues and included console logging for debugging.
-
-### Fixes for the Button:
-1. **Event Listener**: Replaced the inline `onclick` with a JavaScript event listener attached via `addEventListener` to ensure reliability.
-2. **DOM Loading**: Wrapped the script in a `DOMContentLoaded` event to ensure the button and DOM elements are fully loaded before attaching listeners.
-3. **Debugging**: Added console logs to track button clicks and function execution.
-4. **Fallback**: Ensured the button provides clear feedback if no education level is selected.
-5. **Testing**: Verified the button triggers `showRoadmap()` correctly across browsers (Chrome, Firefox, Safari).
-
-### Complete HTML Code
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aesthetic Career Guidance Roadmap</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(-45deg, #e0e7ff, #f3e8ff, #d4f4e6, #e0e7ff);
-            background-size: 400%;
-            animation: gradientBG 15s ease infinite;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 900px;
-            text-align: center;
-            animation: fadeIn 1s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        h1 {
-            color: #2a2a72;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-        select {
-            width: 100%;
-            max-width: 350px;
-            padding: 12px;
-            margin: 15px 0;
-            border: none;
-            border-radius: 10px;
-            background: #f0f2f5;
-            font-size: 16px;
-            font-weight: 500;
-            color: #2a2a72;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        select:focus {
-            background: #e6e9ff;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(42, 42, 114, 0.2);
-        }
-        button {
-            background: linear-gradient(90deg, #34c759, #21b8c7);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 199, 89, 0.4);
-        }
-        .roadmap {
-            margin-top: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            opacity: 0;
-            animation: fadeIn 0.5s ease forwards 0.3s;
-        }
-        .node {
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin: 20px 0;
-            width: 280px;
-            text-align: left;
-            cursor: pointer;
-            position: relative;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s ease;
-        }
-        .node:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-        }
-        .node svg {
-            width: 24px;
-            height: 24px;
-            fill: white;
-        }
-        .node::after {
-            content: '';
-            width: 4px;
-            height: 40px;
-            background: linear-gradient(to bottom, #3b82f6, #d1d5db);
-            position: absolute;
-            bottom: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 2px;
-        }
-        .node:last-child::after {
-            display: none;
-        }
-        .details {
-            display: none;
-            background: #f8fafc;
-            padding: 20px;
-            margin: 10px 0;
-            border-radius: 12px;
-            border-left: 5px solid #3b82f6;
-            width: 100%;
-            max-width: 700px;
-            text-align: left;
-            animation: slideIn 0.4s ease;
-        }
-        .details.active {
-            display: block;
-        }
-        .details h3 {
-            color: #2a2a72;
-            font-size: 18px;
-            margin: 0 0 10px;
-        }
-        .details p, .details ul {
-            margin: 8px 0;
-            line-height: 1.6;
-            color: #333;
-            font-size: 14px;
-        }
-        .details ul {
-            padding-left: 20px;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
-            .node {
-                width: 220px;
-                font-size: 14px;
-                padding: 12px 20px;
-            }
-            .details {
-                padding: 15px;
-            }
-            h1 {
-                font-size: 24px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Career Guidance Roadmap</h1>
-        <label for="educationLevel">Select Your Education Level:</label>
-        <select id="educationLevel">
-            <option value="">-- Choose Education Level --</option>
-            <option value="10th">After 10th</option>
-            <option value="12th">After 12th</option>
-            <option value="graduation">After Graduation</option>
-        </select>
-        <button id="exploreBtn">Explore Your Path</button>
-        <div id="roadmap" class="roadmap"></div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const exploreBtn = document.getElementById('exploreBtn');
-            exploreBtn.addEventListener('click', () => {
-                console.log('Explore button clicked');
-                showRoadmap();
-            });
-        });
-
-        function showRoadmap() {
-            console.log('showRoadmap function called');
-            const educationLevel = document.getElementById('educationLevel').value;
-            const roadmap = document.getElementById('roadmap');
-            roadmap.innerHTML = '';
-
-            if (!educationLevel) {
-                roadmap.innerHTML = '<div class="node"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm0-10a2 2 0 100 4 2 2 0 000-4z"/></svg>Please select an education level</div>';
-                console.log('No education level selected');
-                return;
-            }
-
-            let nodes = [];
-
-            if (educationLevel === '10th') {
-                nodes = [
-                    {
-                        title: 'Choose Academic Stream',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M4 4h16v2H4zm0 4h16v12H4zm2 2v8h12v-8zm4 2h4v4h-4z"/></svg>',
-                        details: `
-                            <h3>Choose Academic Stream (11th & 12th)</h3>
-                            <p>Select Science (PCM/PCB), Commerce, or Arts for further studies based on your interests.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Opens diverse career paths (engineering, medicine, law); structured education; access to competitive exams (JEE, NEET, CLAT).</li>
-                                <li><b>Disadvantages</b>: 2 additional years of study; high exam pressure; delays immediate earning.</li>
-                                <li><b>Paths Blocked</b>: Direct job-oriented paths (ITI, short-term vocational courses).</li>
-                                <li><b>Paths Opened</b>: B.Tech, MBBS, B.Com, BA, CA, Law, NDA, SSC.</li>
-                            </ul>
-                            <p><b>Tip</b>: Take aptitude tests (e.g., CareerFitter) to identify strengths. Explore NTSE scholarships.</p>
-                        `
-                    },
-                    {
-                        title: 'Diploma Courses',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>',
-                        details: `
-                            <h3>Diploma Courses</h3>
-                            <p>Enroll in 2-3 year diplomas (e.g., Mechanical, IT, Hotel Management) for practical skills.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Quick entry to technical jobs; hands-on training; lateral entry to B.Tech possible.</li>
-                                <li><b>Disadvantages</b>: Limited scope vs. degrees; lower initial pay; may need further studies.</li>
-                                <li><b>Paths Blocked</b>: Professional degrees (MBBS, B.Arch); exams requiring 12th (JEE, NEET).</li>
-                                <li><b>Paths Opened</b>: Technician roles, junior engineer, B.Tech (lateral), vocational certifications.</li>
-                            </ul>
-                            <p><b>Tip</b>: Choose accredited polytechnics. Network with industry professionals.</p>
-                        `
-                    },
-                    {
-                        title: 'ITI Training',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M11 2v4h2V4h4v4h2V4c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-8h-2v6H7v-12h4z"/></svg>',
-                        details: `
-                            <h3>ITI (Industrial Training Institute)</h3>
-                            <p>1-2 year courses in trades like Electrician, Welder, or Computer Operator.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Fast job entry; high demand for skilled trades; affordable training.</li>
-                                <li><b>Disadvantages</b>: Limited career growth without upskilling; physically demanding roles.</li>
-                                <li><b>Paths Blocked</b>: Academic degrees (B.Tech, MBBS); exams requiring 12th.</li>
-                                <li><b>Paths Opened</b>: Skilled trades, technical entrepreneurship, further certifications.</li>
-                            </ul>
-                            <p><b>Tip</b>: Opt for government ITIs. Learn digital tools for better job prospects.</p>
-                        `
-                    },
-                    {
-                        title: 'Vocational Skills',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zm2 2v14h14V5zm3 4h8v2H8zm0 4h8v2H8z"/></svg>',
-                        details: `
-                            <h3>Vocational Skills</h3>
-                            <p>Short-term courses in Graphic Design, Coding, or Digital Marketing.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Quick to learn; freelancing opportunities; aligns with digital economy.</li>
-                                <li><b>Disadvantages</b>: Less formal recognition; requires strong portfolio to compete.</li>
-                                <li><b>Paths Blocked</b>: Traditional degrees (B.Sc, B.Com); professional courses needing 12th.</li>
-                                <li><b>Paths Opened</b>: Freelancing, startup roles, advanced tech/design certifications.</li>
-                            </ul>
-                            <p><b>Tip</b>: Build a portfolio on GitHub or Behance. Use Coursera for certifications.</p>
-                        `
-                    },
-                    {
-                        title: 'Entrepreneurship',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14h-2v6H6v2h6v6h2v-6h6v-2h-6V6z"/></svg>',
-                        details: `
-                            <h3>Entrepreneurship</h3>
-                            <p>Start a small business or freelance (e.g., photography, tutoring).</p>
-                            <ul>
-                                <li><b>Advantages</b>: Creative control; high earning potential; builds leadership.</li>
-                                <li><b>Disadvantages</b>: Financial risk; requires initial capital; no guaranteed income.</li>
-                                <li><b>Paths Blocked</b>: Formal degrees, structured jobs without later studies.</li>
-                                <li><b>Paths Opened</b>: Business ownership, e-commerce, startup scaling.</li>
-                            </ul>
-                            <p><b>Tip</b>: Learn business basics via YouTube. Join local startup communities.</p>
-                        `
-                    }
-                ];
-            } else if (educationLevel === '12th') {
-                nodes = [
-                    {
-                        title: 'Science (PCM)',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-10 10 10 10 0 0010 10 10 10 0 0010-10A10 10 0 0012 2zm0 18a8 8 0 01-8-8 8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8zm-1-13h2v6h6v2h-8V7z"/></svg>',
-                        details: `
-                            <h3>Science (PCM)</h3>
-                            <p>Pursue B.Tech (JEE), B.Arch (NATA), or B.Sc (Physics, Math).</p>
-                            <ul>
-                                <li><b>Advantages</b>: High-demand tech/engineering jobs; global opportunities; strong salaries.</li>
-                                <li><b>Disadvantages</b>: Competitive exams (JEE, BITSAT); 4-5 years of study; high pressure.</li>
-                                <li><b>Paths Blocked</b>: Medical fields (MBBS); some commerce/arts degrees.</li>
-                                <li><b>Paths Opened</b>: Software Engineering, Architecture, Data Science, M.Tech, MBA.</li>
-                            </ul>
-                            <p><b>Tip</b>: Prepare for JEE early. Explore tech internships for experience.</p>
-                        `
-                    },
-                    {
-                        title: 'Science (PCB)',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-6h4v4h-4z"/></svg>',
-                        details: `
-                            <h3>Science (PCB)</h3>
-                            <p>Go for MBBS/BDS (NEET), B.Sc Nursing, or Biotechnology.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Stable medical careers; high societal impact; global demand.</li>
-                                <li><b>Disadvantages</b>: Intense NEET competition; long study duration (5+ years); high stress.</li>
-                                <li><b>Paths Blocked</b>: Engineering (without PCM); some commerce/arts fields.</li>
-                                <li><b>Paths Opened</b>: Doctor, Researcher, MD/MS, Healthcare Management.</li>
-                            </ul>
-                            <p><b>Tip</b>: Join NEET coaching. Volunteer in hospitals for exposure.</p>
-                        `
-                    },
-                    {
-                        title: 'Commerce',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M21 4H3v16h18V4zm-2 2v12H5V6h14zm-6 2h-2v Fantastic, thank you for providing the complete code! I'll ensure the button issue is fully resolved and include the remaining nodes for the "12th" and "graduation" education levels to complete the roadmap. Below is the finalized HTML code with a fully functional "Explore Your Path" button, an aesthetic and engaging UI inspired by roadmap.sh, and detailed career path explanations (including advantages, disadvantages, paths blocked, and paths opened) for all education levels (after 10th, 12th, or Graduation). The code is robust, tested, and includes debugging logs to confirm functionality.
-
-### Final Fixes for the Button:
-- **Event Listener**: The button now uses `addEventListener` within a `DOMContentLoaded` event to ensure the DOM is fully loaded before attaching the click handler.
-- **Debugging Logs**: Console logs confirm when the button is clicked and when `showRoadmap()` runs.
-- **Fallback Message**: Clear feedback if no education level is selected.
-- **Browser Compatibility**: Tested to work in Chrome, Firefox, and Safari.
-- **Button ID**: Ensured the button’s `id="exploreBtn"` matches the JavaScript listener.
-
-### Complete HTML Code with All Nodes
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=width, initial-scale=1.0">
-    <title>Aesthetic Career Guidance Roadmap</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(-45deg, #e0e7ff, #f3e8ff, #d4f4e6, #e0e7ff);
-            background-size: 400%;
-            animation: gradientBG 15s ease infinite;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        .container {
-            background: rgba(255, 255, 255, 0.95);
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 900px;
-            text-align: center;
-            animation: fadeIn 1s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        h1 {
-            color: #2a2a72;
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 20px;
-        }
-        select {
-            width: 100%;
-            max-width: 350px;
-            padding: 12px;
-            margin: 15px 0;
-            border: none;
-            border-radius: 10px;
-            background: #f0f2f5;
-            font-size: 16px;
-            font-weight: 500;
-            color: #2a2a72;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        select:focus {
-            background: #e6e9ff;
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(42, 42, 114, 0.2);
-        }
-        button {
-            background: linear-gradient(90deg, #34c759, #21b8c7);
-            color: white;
-            padding: 12px 30px;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(52, 199, 89, 0.4);
-        }
-        .roadmap {
-            margin-top: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            opacity: 0;
-            animation: fadeIn 0.5s ease forwards 0.3s;
-        }
-        .node {
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
-            color: white;
-            padding: 15px 25px;
-            border-radius: 12px;
-            margin: 20px 0;
-            width: 280px;
-            text-align: left;
-            cursor: pointer;
-            position: relative;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            transition: all 0.3s ease;
-        }
-        .node:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
-        }
-        .node svg {
-            width: 24px;
-            height: 24px;
-            fill: white;
-        }
-        .node::after {
-            content: '';
-            width: 4px;
-            height: 40px;
-            background: linear-gradient(to bottom, #3b82f6, #d1d5db);
-            position: absolute;
-            bottom: -40px;
-            left: 50%;
-            transform: translateX(-50%);
-            border-radius: 2px;
-        }
-        .node:last-child::after {
-            display: none;
-        }
-        .details {
-            display: none;
-            background: #f8fafc;
-            padding: 20px;
-            margin: 10px 0;
-            border-radius: 12px;
-            border-left: 5px solid #3b82f6;
-            width: 100%;
-            max-width: 700px;
-            text-align: left;
-            animation: slideIn 0.4s ease;
-        }
-        .details.active {
-            display: block;
-        }
-        .details h3 {
-            color: #2a2a72;
-            font-size: 18px;
-            margin: 0 0 10px;
-        }
-        .details p, .details ul {
-            margin: 8px 0;
-            line-height: 1.6;
-            color: #333;
-            font-size: 14px;
-        }
-        .details ul {
-            padding-left: 20px;
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @media (max-width: 600px) {
-            .container {
-                padding: 20px;
-            }
-            .node {
-                width: 220px;
-                font-size: 14px;
-                padding: 12px 20px;
-            }
-            .details {
-                padding: 15px;
-            }
-            h1 {
-                font-size: 24px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>Career Guidance Roadmap</h1>
-        <label for="educationLevel">Select Your Education Level:</label>
-        <select id="educationLevel">
-            <option value="">-- Choose Education Level --</option>
-            <option value="10th">After 10th</option>
-            <option value="12th">After 12th</option>
-            <option value="graduation">After Graduation</option>
-        </select>
-        <button id="exploreBtn">Explore Your Path</button>
-        <div id="roadmap" class="roadmap"></div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const exploreBtn = document.getElementById('exploreBtn');
-            exploreBtn.addEventListener('click', () => {
-                console.log('Explore button clicked');
-                showRoadmap();
-            });
-        });
-
-        function showRoadmap() {
-            console.log('showRoadmap function called');
-            const educationLevel = document.getElementById('educationLevel').value;
-            const roadmap = document.getElementById('roadmap');
-            roadmap.innerHTML = '';
-
-            if (!educationLevel) {
-                roadmap.innerHTML = '<div class="node"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm0 18a8 8 0 110-16 8 8 0 010 16zm0-10a2 2 0 100 4 2 2 0 000-4z"/></svg>Please select an education level</div>';
-                console.log('No education level selected');
-                return;
-            }
-
-            let nodes = [];
-
-            if (educationLevel === '10th') {
-                nodes = [
-                    {
-                        title: 'Choose Academic Stream',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M4 4h16v2H4zm0 4h16v12H4zm2 2v8h12v-8zm4 2h4v4h-4z"/></svg>',
-                        details: `
-                            <h3>Choose Academic Stream (11th & 12th)</h3>
-                            <p>Select Science (PCM/PCB), Commerce, or Arts for further studies based on your interests.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Opens diverse career paths (engineering, medicine, law); structured education; access to competitive exams (JEE, NEET, CLAT).</li>
-                                <li><b>Disadvantages</b>: 2 additional years of study; high exam pressure; delays immediate earning.</li>
-                                <li><b>Paths Blocked</b>: Direct job-oriented paths (ITI, short-term vocational courses).</li>
-                                <li><b>Paths Opened</b>: B.Tech, MBBS, B.Com, BA, CA, Law, NDA, SSC.</li>
-                            </ul>
-                            <p><b>Tip</b>: Take aptitude tests (e.g., CareerFitter) to identify strengths. Explore NTSE scholarships.</p>
-                        `
-                    },
-                    {
-                        title: 'Diploma Courses',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M20 6h-8l-2-2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10z"/></svg>',
-                        details: `
-                            <h3>Diploma Courses</h3>
-                            <p>Enroll in 2-3 year diplomas (e.g., Mechanical, IT, Hotel Management) for practical skills.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Quick entry to technical jobs; hands-on training; lateral entry to B.Tech possible.</li>
-                                <li><b>Disadvantages</b>: Limited scope vs. degrees; lower initial pay; may need further studies.</li>
-                                <li><b>Paths Blocked</b>: Professional degrees (MBBS, B.Arch); exams requiring 12th (JEE, NEET).</li>
-                                <li><b>Paths Opened</b>: Technician roles, junior engineer, B.Tech (lateral), vocational certifications.</li>
-                            </ul>
-                            <p><b>Tip</b>: Choose accredited polytechnics. Network with industry professionals.</p>
-                        `
-                    },
-                    {
-                        title: 'ITI Training',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M11 2v4h2V4h4v4h2V4c0-1.1-.9-2-2-2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2v-8h-2v6H7v-12h4z"/></svg>',
-                        details: `
-                            <h3>ITI (Industrial Training Institute)</h3>
-                            <p>1-2 year courses in trades like Electrician, Welder, or Computer Operator.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Fast job entry; high demand for skilled trades; affordable training.</li>
-                                <li><b>Disadvantages</b>: Limited career growth without upskilling; physically demanding roles.</li>
-                                <li><b>Paths Blocked</b>: Academic degrees (B.Tech, MBBS); exams requiring 12th.</li>
-                                <li><b>Paths Opened</b>: Skilled trades, technical entrepreneurship, further certifications.</li>
-                            </ul>
-                            <p><b>Tip</b>: Opt for government ITIs. Learn digital tools for better job prospects.</p>
-                        `
-                    },
-                    {
-                        title: 'Vocational Skills',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zm2 2v14h14V5zm3 4h8v2H8zm0 4h8v2H8z"/></svg>',
-                        details: `
-                            <h3>Vocational Skills</h3>
-                            <p>Short-term courses in Graphic Design, Coding, or Digital Marketing.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Quick to learn; freelancing opportunities; aligns with digital economy.</li>
-                                <li><b>Disadvantages</b>: Less formal recognition; requires strong portfolio to compete.</li>
-                                <li><b>Paths Blocked</b>: Traditional degrees (B.Sc, B.Com); professional courses needing 12th.</li>
-                                <li><b>Paths Opened</b>: Freelancing, startup roles, advanced tech/design certifications.</li>
-                            </ul>
-                            <p><b>Tip</b>: Build a portfolio on GitHub or Behance. Use Coursera for certifications.</p>
-                        `
-                    },
-                    {
-                        title: 'Entrepreneurship',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14h-2v6H6v2h6v6h2v-6h6v-2h-6V6z"/></svg>',
-                        details: `
-                            <h3>Entrepreneurship</h3>
-                            <p>Start a small business or freelance (e.g., photography, tutoring).</p>
-                            <ul>
-                                <li><b>Advantages</b>: Creative control; high earning potential; builds leadership.</li>
-                                <li><b>Disadvantages</b>: Financial risk; requires initial capital; no guaranteed income.</li>
-                                <li><b>Paths Blocked</b>: Formal degrees, structured jobs without later studies.</li>
-                                <li><b>Paths Opened</b>: Business ownership, e-commerce, startup scaling.</li>
-                            </ul>
-                            <p><b>Tip</b>: Learn business basics via YouTube. Join local startup communities.</p>
-                        `
-                    }
-                ];
-            } else if (educationLevel === '12th') {
-                nodes = [
-                    {
-                        title: 'Science (PCM)',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-10 10 10 10 0 0010 10 10 10 0 0010-10A10 10 0 0012 2zm0 18a8 8 0 01-8-8 8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8zm-1-13h2v6h6v2h-8V7z"/></svg>',
-                        details: `
-                            <h3>Science (PCM)</h3>
-                            <p>Pursue B.Tech (JEE), B.Arch (NATA), or B.Sc (Physics, Math).</p>
-                            <ul>
-                                <li><b>Advantages</b>: High-demand tech/engineering jobs; global opportunities; strong salaries.</li>
-                                <li><b>Disadvantages</b>: Competitive exams (JEE, BITSAT); 4-5 years of study; high pressure.</li>
-                                <li><b>Paths Blocked</b>: Medical fields (MBBS); some commerce/arts degrees.</li>
-                                <li><b>Paths Opened</b>: Software Engineering, Architecture, Data Science, M.Tech, MBA.</li>
-                            </ul>
-                            <p><b>Tip</b>: Prepare for JEE early. Explore tech internships for experience.</p>
-                        `
-                    },
-                    {
-                        title: 'Science (PCB)',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-6h4v4h-4z"/></svg>',
-                        details: `
-                            <h3>Science (PCB)</h3>
-                            <p>Go for MBBS/BDS (NEET), B.Sc Nursing, or Biotechnology.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Stable medical careers; high societal impact; global demand.</li>
-                                <li><b>Disadvantages</b>: Intense NEET competition; long study duration (5+ years); high stress.</li>
-                                <li><b>Paths Blocked</b>: Engineering (without PCM); some commerce/arts fields.</li>
-                                <li><b>Paths Opened</b>: Doctor, Researcher, MD/MS, Healthcare Management.</li>
-                            </ul>
-                            <p><b>Tip</b>: Join NEET coaching. Volunteer in hospitals for exposure.</p>
-                        `
-                    },
-                    {
-                        title: 'Commerce',
-                        icon: '<svg viewBox="0 0 24 24"><path d="M21 4H3v16h18V4zm-2 2v12H5V6h14zm-6 2h-2v4H7v2h6v-6z"/></svg>',
-                        details: `
-                            <h3>Commerce</h3>
-                            <p>Opt for CA, CS, B.Com, or BBA for finance/business careers.</p>
-                            <ul>
-                                <li><b>Advantages</b>: Diverse roles (accounting, marketing); shorter professional courses; entrepreneurial scope.</li>
-                                <li><b>Disadvantages</b>: Tough CA/CS exams; lower initial pay in some roles.</li>
-                                <li><b>Paths Blocked</b>: Science careers (engineering, medicine); some arts fields.</li>
-                                <li><b>Paths Opened</b>: Finance (CA, CFA), Management (MBA), Banking, Economics.</li>
-                            </ul>
-                            <p><b>Tip</b>: Start CA foundation prep. Learn Tally or financial modeling.</p>
+                            <p><b>Tip</b>: Start CA foundation prep early. Learn Tally or financial modeling (Coursera).</p>
                         `
                     },
                     {
@@ -1035,14 +439,18 @@ System: It looks like the code was cut off in the previous response. Below, I’
                         icon: '<svg viewBox="0 0 24 24"><path d="M3 3h18v18H3zm2 2v14h14V5zm3 4h8v2H8zm0 4h8v2H8z"/></svg>',
                         details: `
                             <h3>Arts/Humanities</h3>
-                            <p>Choose BA (Psychology, History), Law (CLAT), or Journalism.</p>
+                            <p>Choose BA (Psychology, History), Law (CLAT), or Journalism for creative careers.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Critical thinking, writing, research, communication, empathy.</li>
                                 <li><b>Advantages</b>: Flexible careers (media, law); creative freedom; societal impact.</li>
-                                <li><b>Disadvantages</b>: Lower initial pay; requires strong networking.</li>
+                                <li><b>Disadvantages</b>: Lower initial pay; requires strong networking and portfolio.</li>
                                 <li><b>Paths Blocked</b>: Science careers (engineering, medicine); some finance roles.</li>
                                 <li><b>Paths Opened</b>: Law, Journalism, Social Work, UX/Fashion Design.</li>
+                                <li><b>Starting Salary</b>: ₹2.5-6 LPA (India); $40,000-$70,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: NLU (Law), JNU (BA), IIMC (Journalism).</li>
+                                <li><b>Job Roles</b>: Lawyer, Journalist, Social Worker, UX Designer.</li>
                             </ul>
-                            <p><b>Tip</b>: Start a blog for journalism. Intern with NGOs or media houses.</p>
+                            <p><b>Tip</b>: Start a blog for journalism. Intern with NGOs or media houses for experience.</p>
                         `
                     },
                     {
@@ -1052,16 +460,20 @@ System: It looks like the code was cut off in the previous response. Below, I’
                             <h3>Other Paths</h3>
                             <p>Prepare for NDA, SSC, Banking, or vocational courses (e.g., Web Development).</p>
                             <ul>
+                                <li><b>Skills Required</b>: General knowledge, aptitude, coding (for vocational), physical fitness (NDA).</li>
                                 <li><b>Advantages</b>: Quick job entry (government roles); flexible vocational skills.</li>
                                 <li><b>Disadvantages</b>: Competitive exams; vocational roles need upskilling.</li>
                                 <li><b>Paths Blocked</b>: Professional degrees (MBBS, B.Tech) without further studies.</li>
                                 <li><b>Paths Opened</b>: Government jobs, freelancing, startups, certifications.</li>
+                                <li><b>Starting Salary</b>: ₹3-7 LPA (India); $40,000-$70,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: NDA (Pune), SSC coaching (Career Power), Udemy (Web Development).</li>
+                                <li><b>Job Roles</b>: Defense Officer, Bank PO, Web Developer, SSC Officer.</li>
                             </ul>
-                            <p><b>Tip</b>: Practice for NDA/SSC. Learn coding via Udemy or freeCodeCamp.</p>
+                            <p><b>Tip</b>: Practice for NDA/SSC with mock tests. Learn coding via freeCodeCamp.</p>
                         `
                     }
                 ];
-            } else if (educationLevel === 'graduation') {
+            } else if (value === 'graduation') {
                 nodes = [
                     {
                         title: 'Jobs',
@@ -1070,10 +482,14 @@ System: It looks like the code was cut off in the previous response. Below, I’
                             <h3>Jobs</h3>
                             <p>Enter workforce as Software Developer, Doctor, Accountant, or Content Writer.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Field-specific skills (coding, medical expertise, accounting), communication, teamwork.</li>
                                 <li><b>Advantages</b>: Immediate income; real-world experience; stable roles in some fields.</li>
-                                <li><b>Disadvantages</b>: Limited growth without skills; competitive job market.</li>
+                                <li><b>Disadvantages</b>: Limited growth without upskilling; competitive job market.</li>
                                 <li><b>Paths Blocked</b>: Higher studies (M.Tech, MD) unless pursued later.</li>
                                 <li><b>Paths Opened</b>: Industry roles, promotions, certifications for upskilling.</li>
+                                <li><b>Starting Salary</b>: ₹4-15 LPA (India); $50,000-$120,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: Campus placements (IITs, IIMs), job platforms (Naukri, LinkedIn).</li>
+                                <li><b>Job Roles</b>: Software Developer, Doctor, Accountant, Marketing Associate.</li>
                             </ul>
                             <p><b>Tip</b>: Build a LinkedIn profile. Apply via Naukri, Indeed, or campus placements.</p>
                         `
@@ -1083,14 +499,18 @@ System: It looks like the code was cut off in the previous response. Below, I’
                         icon: '<svg viewBox="0 0 24 24"><path d="M4 4h16v2H4zm0 4h16v12H4zm2 2v8h12v-8zm4 2h4v4h-4z"/></svg>',
                         details: `
                             <h3>Higher Studies</h3>
-                            <p>Pursue M.Tech (GATE), MD/MS (NEET-PG), MBA, or MA.</p>
+                            <p>Pursue M.Tech (GATE), MD/MS (NEET-PG), MBA, or MA for advanced expertise.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Research, analytical skills, exam preparation (GATE, CAT), specialization.</li>
                                 <li><b>Advantages</b>: Specialized expertise; higher salaries; global opportunities.</li>
                                 <li><b>Disadvantages</b>: 2-5 years of study; high costs; competitive exams.</li>
                                 <li><b>Paths Blocked</b>: Immediate jobs; quick financial independence.</li>
                                 <li><b>Paths Opened</b>: Research, academia, senior roles (Data Scientist, Surgeon).</li>
+                                <li><b>Starting Salary</b>: ₹8-25 LPA (India); $80,000-$200,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: IIMs (MBA), IITs (M.Tech), AIIMS (MD), JNU (MA).</li>
+                                <li><b>Job Roles</b>: Data Scientist, Surgeon, Management Consultant, Professor.</li>
                             </ul>
-                            <p><b>Tip</b>: Apply for scholarships (Chevening, Fulbright). Prep for GATE/CAT.</p>
+                            <p><b>Tip</b>: Apply for scholarships (Chevening, Fulbright). Prep for GATE/CAT early.</p>
                         `
                     },
                     {
@@ -1098,12 +518,16 @@ System: It looks like the code was cut off in the previous response. Below, I’
                         icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-2-6h4v4h-4z"/></svg>',
                         details: `
                             <h3>Certifications</h3>
-                            <p>Learn Cloud Computing (AWS), Digital Marketing, or Financial Modeling.</p>
+                            <p>Learn Cloud Computing (AWS), Digital Marketing, or Financial Modeling for quick upskilling.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Technical skills (AWS, Google Analytics), self-discipline, project management.</li>
                                 <li><b>Advantages</b>: Quick skill acquisition; boosts employability; flexible learning.</li>
                                 <li><b>Disadvantages</b>: May not replace degrees; requires self-discipline.</li>
                                 <li><b>Paths Blocked</b>: Academic research; senior roles needing degrees.</li>
                                 <li><b>Paths Opened</b>: Tech jobs (Cloud Engineer), freelancing, startup roles.</li>
+                                <li><b>Starting Salary</b>: ₹3-10 LPA (India); $50,000-$90,000/year (global).</li>
+                                <li><b>Top Institutes/Courses</b>: AWS Academy, Google Skillshop, Coursera (Financial Modeling).</li>
+                                <li><b>Job Roles</b>: Cloud Engineer, Digital Marketer, Financial Analyst, Freelancer.</li>
                             </ul>
                             <p><b>Tip</b>: Use Coursera, Udacity. Showcase certifications on LinkedIn.</p>
                         `
@@ -1113,14 +537,18 @@ System: It looks like the code was cut off in the previous response. Below, I’
                         icon: '<svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 00-10 10 10 10 0 0010 10 10 10 0 0010-10A10 10 0 0012 2zm0 18a8 8 0 01-8-8 8 8 0 018-8 8 8 0 018 8 8 8 0 01-8 8zm-1-13h2v6h6v2h-8V7z"/></svg>',
                         details: `
                             <h3>Government Exams</h3>
-                            <p>Prepare for UPSC IAS/IPS, SSC CGL, or Banking (IBPS, SBI PO).</p>
+                            <p>Prepare for UPSC IAS/IPS, SSC CGL, or Banking (IBPS, SBI PO) for secure roles.</p>
                             <ul>
+                                <li><b>Skills Required</b>: General knowledge, aptitude, current affairs, leadership.</li>
                                 <li><b>Advantages</b>: Job security; benefits (pension); prestigious roles.</li>
                                 <li><b>Disadvantages</b>: Highly competitive; long prep time; limited flexibility.</li>
                                 <li><b>Paths Blocked</b>: Immediate private-sector jobs; entrepreneurial ventures.</li>
                                 <li><b>Paths Opened</b>: Civil services, banking, public sector roles.</li>
+                                <li><b>Starting Salary</b>: ₹5-12 LPA (India); $50,000-$100,000/year (global, public sector).</li>
+                                <li><b>Top Institutes/Courses</b>: Vajiram & Ravi (UPSC), Career Power (SSC), SBI training.</li>
+                                <li><b>Job Roles</b>: IAS Officer, Bank PO, SSC Officer, Public Sector Manager.</li>
                             </ul>
-                            <p><b>Tip</b>: Join UPSC/SSC coaching. Practice mock tests daily.</p>
+                            <p><b>Tip</b>: Join UPSC/SSC coaching. Practice mock tests daily on Testbook.</p>
                         `
                     },
                     {
@@ -1128,14 +556,18 @@ System: It looks like the code was cut off in the previous response. Below, I’
                         icon: '<svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14h-2v6H6v2h6v6h2v-6h6v-2h-6V6z"/></svg>',
                         details: `
                             <h3>Entrepreneurship/Freelancing</h3>
-                            <p>Start a business or freelance in coding, design, or tutoring.</p>
+                            <p>Start a business or freelance in coding, design, or tutoring for flexible careers.</p>
                             <ul>
+                                <li><b>Skills Required</b>: Innovation, marketing, financial management, networking.</li>
                                 <li><b>Advantages</b>: Creative freedom; high earning potential; flexible schedule.</li>
                                 <li><b>Disadvantages</b>: Financial risk; needs strong networking; no job security.</li>
                                 <li><b>Paths Blocked</b>: Structured corporate/government jobs; academic research.</li>
                                 <li><b>Paths Opened</b>: Startups, e-commerce, consulting, global freelancing.</li>
+                                <li><b>Starting Salary</b>: Variable (₹0-15 LPA in India; $0-$150,000/year globally).</li>
+                                <li><b>Top Institutes/Courses</b>: Startup India, Coursera (Entrepreneurship), Upwork Skill Certification.</li>
+                                <li><b>Job Roles</b>: Startup Founder, Freelance Developer, Consultant, E-commerce Seller.</li>
                             </ul>
-                            <p><b>Tip</b>: Use Upwork, Fiverr. Attend startup events for networking.</p>
+                            <p><b>Tip</b>: Use Upwork, Fiverr. Attend startup events (e.g., Startup India Hub).</p>
                         `
                     }
                 ];
@@ -1154,19 +586,195 @@ System: It looks like the code was cut off in the previous response. Below, I’
 
                 roadmap.appendChild(nodeElement);
                 roadmap.appendChild(detailsElement);
+                console.log(`Node ${index}: ${node.title} added to roadmap`);
             });
-            console.log(`Roadmap generated with ${nodes.length} nodes for ${educationLevel}`);
+            console.log(`Roadmap generated with ${nodes.length} nodes for ${value}`);
         }
 
         function toggleDetails(index) {
             console.log(`Toggling details for node ${index}`);
             const details = document.getElementById(`details-${index}`);
+            if (!details) {
+                console.error(`Details element for node ${index} not found`);
+                return;
+            }
             const isActive = details.classList.contains('active');
             document.querySelectorAll('.details').forEach(d => d.classList.remove('active'));
             if (!isActive) {
                 details.classList.add('active');
             }
         }
+
+        function showQuiz() {
+            console.log('showQuiz function called');
+            const quizContainer = document.getElementById('quizContainer');
+            const quizQuestions = document.getElementById('quizQuestions');
+            const quizResult = document.getElementById('quizResult');
+            const roadmap = document.getElementById('roadmap');
+            const submitQuizBtn = document.getElementById('submitQuiz');
+            if (!quizContainer || !quizQuestions || !quizResult || !submitQuizBtn) {
+                console.error('Quiz elements not found');
+                alert('Error: Unable to load quiz. Please refresh the page.');
+                return;
+            }
+            quizContainer.classList.add('active');
+            roadmap.innerHTML = '';
+            quizResult.classList.remove('active');
+            quizQuestions.style.display = 'block'; // Ensure questions are visible initially
+            submitQuizBtn.style.display = 'block'; // Ensure submit button is visible initially
+            quizQuestions.innerHTML = '';
+
+            const questions = [
+                {
+                    question: 'What type of activities do you enjoy most?',
+                    options: ['Solving math or logic puzzles', 'Helping people or studying biology', 'Managing money or business projects', 'Creative tasks like writing or designing'],
+                    scores: { science: [1, 1, 0, 0], commerce: [0, 0, 1, 0], arts: [0, 0, 0, 1], vocational: [0, 0, 0, 1], entrepreneurship: [0, 0, 1, 1] }
+                },
+                {
+                    question: 'What subject do you excel in?',
+                    options: ['Math or Physics', 'Biology or Chemistry', 'Accounts or Economics', 'English or History'],
+                    scores: { science: [1, 1, 0, 0], commerce: [0, 0, 1, 0], arts: [0, 0, 0, 1], vocational: [0, 0, 0, 1], entrepreneurship: [0, 0, 1, 0] }
+                },
+                {
+                    question: 'What’s your preferred work environment?',
+                    options: ['Labs or technical settings', 'Hospitals or clinics', 'Offices or banks', 'Creative studios or remote work'],
+                    scores: { science: [1, 0, 0, 0], commerce: [0, 0, 1, 0], arts: [0, 0, 0, 1], vocational: [0, 0, 0, 1], entrepreneurship: [0, 0, 1, 1] }
+                },
+                {
+                    question: 'What motivates you most?',
+                    options: ['Solving complex problems', 'Making a societal impact', 'Financial success', 'Creative expression'],
+                    scores: { science: [1, 0, 0, 0], commerce: [0, 0, 1, 0], arts: [0, 1, 0, 1], vocational: [0, 0, 0, 1], entrepreneurship: [0, 0, 1, 1] }
+                },
+                {
+                    question: 'How do you approach challenges?',
+                    options: ['Analytically with data', 'Empathetically with care', 'Strategically with planning', 'Creatively with innovation'],
+                    scores: { science: [1, 0, 0, 0], commerce: [0, 0, 1, 0], arts: [0, 1, 0, 1], vocational: [0, 0, 0, 1], entrepreneurship: [0, 0, 1, 1] }
+                },
+                {
+                    question: 'What’s your long-term goal?',
+                    options: ['Innovate in technology', 'Serve in healthcare', 'Lead in business', 'Influence through media or art'],
+                    scores: { science: [1, 0, 0, 0], commerce: [0, 0, 1, 0], arts: [0, 0, 0, 1], vocational: [0, 0, 0, 1], entrepreneurship: [0, 0, 1, 1] }
+                },
+                {
+                    question: 'What’s your risk tolerance?',
+                    options: ['Low, prefer stability', 'Moderate, open to challenges', 'High, enjoy risks', 'Variable, depends on reward'],
+                    scores: { science: [1, 1, 0, 0], commerce: [1, 1, 0, 0], arts: [0, 1, 1, 1], vocational: [0, 1, 1, 1], entrepreneurship: [0, 0, 1, 1] }
+                },
+                {
+                    question: 'What skills do you want to develop?',
+                    options: ['Technical or coding skills', 'Medical or caregiving skills', 'Financial or management skills', 'Creative or communication skills'],
+                    scores: { science: [1, 0, 0, 0], commerce: [0, 0, 1, 0], arts: [0, 0, 0, 1], vocational: [1, 0, 0, 1], entrepreneurship: [0, 0, 1, 1] }
+                },
+                {
+                    question: 'What’s your learning style?',
+                    options: ['Logical and structured', 'Practical and hands-on', 'Collaborative and strategic', 'Creative and self-paced'],
+                    scores: { science: [1, 0, 0, 0], commerce: [0, 0, 1, 0], arts: [0, 0, 0, 1], vocational: [0, 1, 0, 1], entrepreneurship: [0, 0, 1, 1] }
+                },
+                {
+                    question: 'What career outcome excites you?',
+                    options: ['Building technology', 'Healing people', 'Running a business', 'Creating art or stories'],
+                    scores: { science: [1, 0, 0, 0], commerce: [0, 0, 1, 0], arts: [0, 0, 0, 1], vocational: [0, 0, 0, 1], entrepreneurship: [0, 0, 1, 1] }
+                }
+            ];
+
+            questions.forEach((q, index) => {
+                const questionDiv = document.createElement('div');
+                questionDiv.className = 'quiz-question';
+                questionDiv.innerHTML = `
+                    <p>${index + 1}. ${q.question}</p>
+                    ${q.options.map((option, i) => `
+                        <label><input type="radio" name="q${index}" value="${i}"> ${option}</label>
+                    `).join('')}
+                `;
+                quizQuestions.appendChild(questionDiv);
+            });
+            console.log('Quiz questions generated');
+        }
+
+        function submitQuiz() {
+            console.log('submitQuiz function called');
+            const quizResult = document.getElementById('quizResult');
+            const quizQuestions = document.getElementById('quizQuestions');
+            const submitQuizBtn = document.getElementById('submitQuiz');
+            if (!quizResult || !quizQuestions || !submitQuizBtn) {
+                console.error('Quiz elements not found');
+                alert('Error: Unable to display results. Please refresh the page.');
+                return;
+            }
+            const scores = { science: 0, commerce: 0, arts: 0, vocational: 0, entrepreneurship: 0 };
+            let allAnswered = true;
+
+            for (let i = 0; i < 10; i++) {
+                const selected = document.querySelector(`input[name="q${i}"]:checked`);
+                if (!selected) {
+                    allAnswered = false;
+                    break;
+                }
+                const value = parseInt(selected.value);
+                scores.science += [1, 1, 0, 0][value] || 0;
+                scores.commerce += [0, 0, 1, 0][value] || 0;
+                scores.arts += [0, 0, 0, 1][value] || 0;
+                scores.vocational += [0, 0, 0, 1][value] || 0;
+                scores.entrepreneurship += [0, 0, 1, 1][value] || 0;
+            }
+
+            if (!allAnswered) {
+                alert('Please answer all questions to get your career path recommendation.');
+                console.log('Incomplete quiz answers');
+                return;
+            }
+
+            // Hide questions and submit button
+            quizQuestions.style.display = 'none';
+            submitQuizBtn.style.display = 'none';
+            console.log('Quiz questions and submit button hidden');
+
+            const maxScore = Math.max(...Object.values(scores));
+            const recommendedStream = Object.keys(scores).find(key => scores[key] === maxScore);
+            let reason = '';
+
+            switch (recommendedStream) {
+                case 'science':
+                    reason = `
+                        <h3>Recommended Stream: Science</h3>
+                        <p>Your answers suggest a strong interest in problem-solving, logical thinking, and technical fields. You excel in subjects like Math or Biology and enjoy structured, analytical work. Science is ideal for you because it offers diverse career paths like engineering or medicine, with opportunities for innovation and high earning potential. Recommended steps: Explore JEE/NEET prep and internships in tech or healthcare.</p>
+                    `;
+                    break;
+                case 'commerce':
+                    reason = `
+                        <h3>Recommended Stream: Commerce</h3>
+                        <p>Your responses indicate a knack for business, finance, and strategic thinking. You’re motivated by financial success and enjoy managing projects or money. Commerce suits you as it leads to careers in accounting, banking, or management with strong growth potential. Recommended steps: Start CA foundation or BBA prep and learn financial tools like Tally.</p>
+                    `;
+                    break;
+                case 'arts':
+                    reason = `
+                        <h3>Recommended Stream: Arts/Humanities</h3>
+                        <p>You’re drawn to creative expression, communication, and societal impact. Your strengths in writing, empathy, or history make Arts a great fit, offering flexible careers in law, journalism, or design. This stream allows you to leverage your creativity and influence others. Recommended steps: Start a blog or intern with media/NGOs.</p>
+                    `;
+                    break;
+                case 'vocational':
+                    reason = `
+                        <h3>Recommended Stream: Vocational Skills</h3>
+                        <p>Your preference for hands-on, practical learning and creative or technical skills makes vocational courses ideal. You enjoy quick, skill-based training that leads to freelancing or startup roles in fields like coding or design. Recommended steps: Enroll in short-term courses (Coursera, Udemy) and build a portfolio.</p>
+                    `;
+                    break;
+                case 'entrepreneurship':
+                    reason = `
+                        <h3>Recommended Stream: Entrepreneurship</h3>
+                        <p>Your high risk tolerance, leadership, and interest in business or innovation point to entrepreneurship. You thrive in creative, strategic roles and want control over your career. This path offers flexibility and high earning potential through startups or freelancing. Recommended steps: Join Startup India or network at entrepreneurial events.</p>
+                    `;
+                    break;
+            }
+
+            quizResult.innerHTML = reason;
+            quizResult.classList.add('active');
+            console.log(`Quiz result: ${recommendedStream} with score ${maxScore}`);
+        }
+
+        document.getElementById('submitQuiz').addEventListener('click', () => {
+            console.log('Submit quiz button clicked');
+            submitQuiz();
+        });
     </script>
 </body>
 </html>
